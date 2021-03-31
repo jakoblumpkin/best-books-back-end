@@ -17,7 +17,7 @@ app.get('/', function (request, response) {
 });
 
 
-mongoose.connect(DATABASE_URL, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true});
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -31,6 +31,7 @@ const User = require('./Models/User');
 
 
 app.get('/books', getAllBooks);
+app.post('/books', createABook);
 
 function getAllBooks(request, response) {
   const name = request.query.email;
@@ -39,6 +40,18 @@ function getAllBooks(request, response) {
     if (err) return console.error(err);
     console.log(items, items[0]);
     response.status(200).send(items[0].books);
+  });
+}
+
+function createABook(request, response) {
+  const name = request.body.email;
+  const book = { title: request.body.book };
+
+  User.findOne({ email: name }, (err, entry) => {
+    if(err) return console.error(err);
+    entry.cats.push(name);
+    entry.save();
+    response.status(200).send(entry.books);
   });
 }
 
