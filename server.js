@@ -30,14 +30,14 @@ db.once('open', function() {
 const User = require('./Models/User');
 
 
-app.get('/book', getAllBooks);
+app.get('/books', getAllBooks);
 
-async function getAllBooks(request, response) {
-  const name = request.query.name;
-  console.log({name})
-  await User.find({name: name}, function (err, items) {
+function getAllBooks(request, response) {
+  const name = request.query.email;
+  console.log({name});
+  User.find({email: name}, function (err, items) {
     if (err) return console.error(err);
-    console.log(items, items[0])
+    console.log(items, items[0]);
     response.status(200).send(items[0].books);
   });
 }
