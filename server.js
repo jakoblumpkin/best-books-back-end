@@ -7,17 +7,19 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const PORT = process.env.PORT || 3002;
-const DATABASE_URL = process.env.DATABASE_URL;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 const app = express();
 app.use(cors());
+
+app.use(express.json());
 
 app.get('/', function (request, response) {
   response.send('Hello World');
 });
 
 
-mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true});
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -31,28 +33,49 @@ const User = require('./Models/User');
 
 
 app.get('/books', getAllBooks);
-app.post('/books', createABook);
+app.post('/createbooks', createABook);
+app.delete('/books/:id', deleteABook);
 
 function getAllBooks(request, response) {
   const name = request.query.email;
-  console.log({name});
   User.find({email: name}, function (err, items) {
     if (err) return console.error(err);
-    console.log(items, items[0]);
     response.status(200).send(items[0].books);
   });
 }
 
 function createABook(request, response) {
-  const name = request.body.email;
-  const book = { title: request.body.book };
+  console.log('hello', request.body.email);
+  const userEmail = request.body.email;
+  const book = {
+    name: request.body.name,
+    description: request.body.description,
+    status: request.body.status
+  };
 
-  User.findOne({ email: name }, (err, entry) => {
+  User.findOne({ email: userEmail }, (err, entry) => {
     if(err) return console.error(err);
-    entry.cats.push(name);
+    entry.books.push(book);
     entry.save();
     response.status(200).send(entry.books);
   });
 }
+
+function deleteABook(request, response) {
+  const userEmail = request.query.email;
+  const id = request.params.id;
+  console.log('idreg', id);
+  User.findOne({ email: userEmail }, (err, entry) => {
+    if(err) return console.error(err);
+    const newBookArray = entry.books.filter((book, i) => {
+      return parseInt(id) !== i;
+    });
+    entry.books = newBookArray;
+    entry.save();
+    response.status(200).send('Success!');
+    console.log(newBookArray);
+  });
+}
+
 
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
