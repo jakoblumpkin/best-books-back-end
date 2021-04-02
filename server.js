@@ -35,6 +35,7 @@ const User = require('./Models/User');
 app.get('/books', getAllBooks);
 app.post('/createbooks', createABook);
 app.delete('/books/:id', deleteABook);
+app.put('/books/:id', putABook);
 
 function getAllBooks(request, response) {
   const name = request.query.email;
@@ -74,6 +75,22 @@ function deleteABook(request, response) {
     entry.save();
     response.status(200).send('Success!');
     console.log(newBookArray);
+  });
+}
+
+function putABook(request, response) {
+  const userEmail = request.body.email;
+  const id = parseInt(request.body.id);
+  const book = {
+    name: request.body.name,
+    description: request.body.description,
+    status: request.body.status
+  };
+  User.findOne({ email: userEmail }, (err, entry) => {
+    if(err) return console.error(err);
+    entry.books[id] = book;
+    console.log(entry.books);
+    entry.save();
   });
 }
 
